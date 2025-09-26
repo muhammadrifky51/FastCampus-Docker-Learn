@@ -1,0 +1,44 @@
+name: 'myapp' #specify app name
+
+#More service can be found at: https://docs.docker.com/compose/compose-file/05-services/
+
+services:
+  app:    #define service name as app
+    build: 
+      context: ../P0-Ch.04-04/. # Path to Dockerfile
+      dockerfile: Dockerfile # Specify Dockerfile name if it's not 'Dockerfile'
+    command: go run main.go # Command to run the application
+    volumes:
+      - ../P0-Ch.04-04/:/app # Mount current directory to /app in the container
+    ports:
+      - "8080:8080" # Map port 8080 of the host to port 8080 of the container
+    depends_on:
+      - db # Ensure db service starts before app
+    restart: always # Always restart the container if it stops
+    environment:
+      - DB_HOST=db # Database hostname
+      - DB_USER=postgres # Database username
+      - DB_PASSWORD=mysecretpassword # Database password
+      - DB_NAME=mydb # Database name
+      - DB_PORT=5432 # Database port
+    networks:
+      - backend
+
+  db:  #define service name as db
+    image: postgres:14.5 # Use official Postgres image
+    volumes:
+      - postgres-data:/var/lib/postgresql/data # Persist data in a named volume
+    environment: # Set environment variables for Postgres
+      - POSTGRES_USER=postgres # Database username
+      - POSTGRES_PASSWORD=mysecretpassword # Database password
+      - POSTGRES_DB=mydb # Database name
+    restart: always
+    networks:
+      - backend
+  
+volumes: # Define named volume for Postgres data
+  postgres-data:
+
+networks: # Define custom network
+  backend:
+    driver: bridge # Use bridge driver for the network (default)
